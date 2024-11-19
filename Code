@@ -1,0 +1,127 @@
+import pygame
+import random
+import os
+
+# Initialize pygame
+pygame.init()
+
+# Screen dimensions
+WIDTH, HEIGHT = 1000, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Dealer's Gambit")
+
+# Colors
+GREEN = (34, 139, 34)  # Poker table green
+GREY = (110, 110, 110)
+
+# Constants for cards
+CARD_WIDTH, CARD_HEIGHT = 80, 120
+CARD_FOLDER = "Cards"  # Folder where card images are stored
+
+# Load card images
+def load_card_images():
+    """Load and resize all card images."""
+    cards = []
+    for i in range(1, 53):  # Load card_01.png to card_52.png
+        card_image = pygame.image.load(os.path.join(CARD_FOLDER, f"card_{i:02}.png"))
+        card_image = pygame.transform.scale(card_image, (CARD_WIDTH, CARD_HEIGHT))
+        cards.append(card_image)
+    return cards
+
+# Initialize cards and shuffle
+card_images = load_card_images()
+deck = list(range(52))  # Deck of card indices (0-51)
+
+# Shuffle cards
+def shuffle_deck():
+    random.shuffle(deck)
+    return deck[:]
+
+# Deal cards to players
+def deal_cards(deck, num_players=4):
+    """Deal 2 cards to each player."""
+    hands = [[] for _ in range(num_players)]
+    for _ in range(2):  # Each player gets 2 cards
+        for hand in hands:
+            if deck:
+                hand.append(deck.pop(0))
+    return hands
+
+# Draw poker table
+def draw_table():
+    """Draw the poker table."""
+    pygame.draw.circle(screen, GREEN, (WIDTH // 2, HEIGHT // 2), 500)
+
+# Draw player hands
+def draw_player_hands(hands, positions):
+    """Draw each player's hand at the specified positions."""
+    for i, hand in enumerate(hands):
+        x, y = positions[i]
+        for j, card_idx in enumerate(hand):
+            screen.blit(card_images[card_idx], (x + j * (CARD_WIDTH + 20), y))
+
+# Draw middle cards
+def draw_middle_cards(cards, position):
+    """Draw cards in the middle of the table."""
+    x, y = position
+    for i, card_idx in enumerate(cards):
+        screen.blit(card_images[card_idx], (x + i * (CARD_WIDTH + 20), y))
+
+# Main game function
+def main():
+    running = True
+    clock = pygame.time.Clock()
+
+    # Game state
+    shuffled_deck = shuffle_deck()
+    num_players = 4  # Change this to 2, 3, or 4
+    player_hands = deal_cards(shuffled_deck, num_players)
+
+    # Deal 5 random cards to the middle
+    middle_cards = shuffled_deck[:5]
+    shuffled_deck = shuffled_deck[5:]  # Remove these cards from the deck
+
+    # Player positions around the table
+    player_positions = [
+        (WIDTH // 2 - CARD_WIDTH - 180, HEIGHT // 2 - CARD_HEIGHT - 120),  # Top (Player 1)
+        (WIDTH // 2 + 200, HEIGHT // 2 - CARD_HEIGHT - 120),              # Top-right (Player 2)
+        (WIDTH // 2 - CARD_WIDTH - 200, HEIGHT // 2 + 100),               # Bottom-left (Player 3)
+        (WIDTH // 2 + 200, HEIGHT // 2 + 100),                            # Bottom-right (Player 4)
+    ][:num_players]
+
+    # Position for middle cards
+    middle_position = (WIDTH // 2 - (CARD_WIDTH + 20) * 2, HEIGHT // 2 - CARD_HEIGHT // 2)
+
+    while running:
+        screen.fill(GREY)
+        draw_table()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:  # Press 'R' to reshuffle and deal
+                    shuffled_deck = shuffle_deck()
+                    player_hands = deal_cards(shuffled_deck, num_players)
+                    middle_cards = shuffled_deck[:5]
+                    shuffled_deck = shuffled_deck[5:]  # Update deck after middle cards are dealt
+
+        # Draw the players' cards
+        draw_player_hands(player_hands, player_positions)
+
+        # Draw the middle cards
+        draw_middle_cards(middle_cards, middle_position)
+
+        # Display instructions
+        font = pygame.font.Font(None, 36)
+        instructions = font.render("Press 'R' to reshuffle and deal. Close to exit.", True, "BLACK")
+        screen.blit(instructions, (20, 20))
+
+        # Update display
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
