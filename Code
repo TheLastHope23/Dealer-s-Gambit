@@ -13,6 +13,8 @@ pygame.display.set_caption("Dealer's Gambit")
 # Colors
 GREEN = (34, 139, 34)  # Poker table green
 GREY = (110, 110, 110)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
 # Constants for cards
 CARD_WIDTH, CARD_HEIGHT = 80, 120
@@ -28,8 +30,15 @@ def load_card_images():
         cards.append(card_image)
     return cards
 
+# Load deck box image
+def load_deck_box_image():
+    """Load and resize the deck box image."""
+    deck_image = pygame.image.load("BICYCLE.png")
+    return pygame.transform.scale(deck_image, (150, 150))  # Adjusted width and height for better look
+
 # Initialize cards and shuffle
 card_images = load_card_images()
+deck_box_image = load_deck_box_image()
 deck = list(range(52))  # Deck of card indices (0-51)
 
 # Shuffle cards
@@ -49,8 +58,9 @@ def deal_cards(deck, num_players=4):
 
 # Draw poker table
 def draw_table():
-    """Draw the poker table."""
-    pygame.draw.circle(screen, GREEN, (WIDTH // 2, HEIGHT // 2), 500)
+    """Draw the poker table with a white border."""
+    pygame.draw.circle(screen, WHITE, (WIDTH // 2, HEIGHT // 2), 495)  # Outer white border
+    pygame.draw.circle(screen, GREEN, (WIDTH // 2, HEIGHT // 2), 455)  # Inner green table
 
 # Draw player hands
 def draw_player_hands(hands, positions):
@@ -66,6 +76,12 @@ def draw_middle_cards(cards, position):
     x, y = position
     for i, card_idx in enumerate(cards):
         screen.blit(card_images[card_idx], (x + i * (CARD_WIDTH + 20), y))
+
+# Draw the deck box
+def draw_deck_box(position):
+    """Draw the deck box image with a white border."""
+    x, y = position
+    screen.blit(deck_box_image, (x, y))  # Draw the deck box image
 
 # Main game function
 def main():
@@ -83,14 +99,17 @@ def main():
 
     # Player positions around the table
     player_positions = [
-        (WIDTH // 2 - CARD_WIDTH - 180, HEIGHT // 2 - CARD_HEIGHT - 120),  # Top (Player 1)
+        (WIDTH // 2 - CARD_WIDTH - 300, HEIGHT // 2 - CARD_HEIGHT - 120),  # Top (Player 1)
         (WIDTH // 2 + 200, HEIGHT // 2 - CARD_HEIGHT - 120),              # Top-right (Player 2)
-        (WIDTH // 2 - CARD_WIDTH - 200, HEIGHT // 2 + 100),               # Bottom-left (Player 3)
+        (WIDTH // 2 - CARD_WIDTH - 300, HEIGHT // 2 + 100),               # Bottom-left (Player 3)
         (WIDTH // 2 + 200, HEIGHT // 2 + 100),                            # Bottom-right (Player 4)
     ][:num_players]
 
     # Position for middle cards
-    middle_position = (WIDTH // 2 - (CARD_WIDTH + 20) * 2, HEIGHT // 2 - CARD_HEIGHT // 2)
+    middle_position = (WIDTH // 2 - (CARD_WIDTH + 20) * 2.5, HEIGHT // 2 - CARD_HEIGHT // 2)
+
+    # Position for deck box
+    deck_box_position = (WIDTH - 200, HEIGHT // 2 - 100)  # Adjusted position for better look
 
     while running:
         screen.fill(GREY)
@@ -112,9 +131,12 @@ def main():
         # Draw the middle cards
         draw_middle_cards(middle_cards, middle_position)
 
+        # Draw the deck box with white border
+        draw_deck_box(deck_box_position)
+
         # Display instructions
         font = pygame.font.Font(None, 36)
-        instructions = font.render("Press 'R' to reshuffle and deal. Close to exit.", True, "BLACK")
+        instructions = font.render("Press 'R' to reshuffle and deal. Close to exit.", True, BLACK)
         screen.blit(instructions, (20, 20))
 
         # Update display
